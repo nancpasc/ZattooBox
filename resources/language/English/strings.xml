@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<strings>
+    <string id="1000">Account settings</string>
+    <string id="1001">Username</string>
+    <string id="1002">Password</string>
+    <string id="2001">Live TV</string>
+    <string id="2002">Recordings</string>
+    <string id="9001">Content not accessible</string>
+    <string id="9002">Unable to start a session. Check the account settings!</string>
+</strings>
