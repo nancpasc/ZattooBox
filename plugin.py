@@ -1,7 +1,7 @@
 # coding=utf-8
 
 ##################################
-# ZattooBox v0.2.1
+# ZattooBox v0.2.2
 # (c) 2014 Pascal Nançoz
 # nancpasc@gmail.com
 #
@@ -45,7 +45,7 @@ def zapi_call(url, params, context='default'):
 		content = session_url_request(url, params)
 	if content is None:
 		if context != 'session':
-			xbmcgui.Dialog().ok(__addonname__, __addon__.getLocalizedString(9001))
+			xbmcgui.Dialog().ok(__addonname__, __addon__.getLocalizedString(30901))
 		return None
 	try:
 		data = json.loads(content)
@@ -83,7 +83,7 @@ def build_directory_content(content, addon_handle):
 
 def build_root(addon_uri, addon_handle):
 	content = []
-	content.append({'title': __addon__.getLocalizedString(2002), 'image': '', 'isFolder': True,
+	content.append({'title': __addon__.getLocalizedString(30102), 'image': '', 'isFolder': True,
 					'url': addon_uri + '?' + urllib.urlencode({'mode': 'f', 'level': 'recordings'})})
 	build_directory_content(content, addon_handle)
 
@@ -117,7 +117,7 @@ def session_retrieve(force_renew=False):
 	global _account_data
 	try:
 		_HTTPOpener = urllib2.build_opener()
-		if os.path.isfile(COOKIE_FILE) and os.path.isfile(ACCOUNT_FILE):
+		if not force_renew and os.path.isfile(COOKIE_FILE) and os.path.isfile(ACCOUNT_FILE):
 			with open(COOKIE_FILE, 'r') as f:
 				set_session_opener(base64.b64decode(f.readline()))
 			with open(ACCOUNT_FILE, 'r') as f:
@@ -164,4 +164,4 @@ if session_retrieve():
 		recording_id = args.get('id')[0]
 		watch_recording(recording_id)
 else:
-	xbmcgui.Dialog().ok(__addonname__, __addon__.getLocalizedString(9002))
+	xbmcgui.Dialog().ok(__addonname__, __addon__.getLocalizedString(30902))
