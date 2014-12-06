@@ -9,8 +9,10 @@
 ##################################
 import sys, urllib, urlparse, os
 import xbmcgui, xbmcplugin, xbmcaddon
-from zapisession import ZapiSession
-from zapihelper import ZapiHelper
+
+#import zappylib
+from resources.lib.zappylib.zapisession import ZapiSession
+from resources.lib.zappylib.zapihelper import ZapiHelper
 
 __addon__       = xbmcaddon.Addon()
 __addonname__   = __addon__.getAddonInfo('name')
