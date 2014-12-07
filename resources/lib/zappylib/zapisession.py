@@ -1,7 +1,7 @@
 # coding=utf-8
 
 ##################################
-# Zappylib V0.3.0
+# Zappylib V0.5.0
 # ZapiSession
 # (c) 2014 Pascal Nançoz
 ##################################
@@ -12,6 +12,7 @@ import json
 class ZapiSession:
 	ZAPI_AUTH_URL = 'https://zattoo.com'
 	ZAPI_URL = 'http://zattoo.com'
+	DATA_FOLDER = None
 	COOKIE_FILE = None
 	ACCOUNT_FILE = None
 	HttpHandler = None
@@ -19,9 +20,10 @@ class ZapiSession:
 	Password = None
 	AccountData = None
 
-	def __init__(self, sessionFolder):
-		self.COOKIE_FILE = os.path.join(sessionFolder, 'session.id')
-		self.ACCOUNT_FILE = os.path.join(sessionFolder, 'account.dat')
+	def __init__(self, dataFolder):
+		self.DATA_FOLDER = dataFolder
+		self.COOKIE_FILE = os.path.join(dataFolder, 'session.cache')
+		self.ACCOUNT_FILE = os.path.join(dataFolder, 'account.cache')
 		self.HttpHandler = urllib2.build_opener()
 		self.HttpHandler.addheaders = [('Content-type', 'application/x-www-form-urlencoded'),('Accept', 'application/json')]
 
