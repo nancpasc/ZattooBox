@@ -1,9 +1,9 @@
 # coding=utf-8
 
 ##################################
-# Zappylib V0.5.0
+# Zappylib V0.5.5
 # ZapiHelper
-# (c) 2014 Pascal Nançoz
+# (c) 2014-2015 Pascal Nançoz
 ##################################
 import os, time, json, base64
 
@@ -13,7 +13,8 @@ class ZapiHelper:
 	ZapiSession = None
 
 	def __init__(self, zapiSession):
-		self.CHANNELS_CACHE_FILE = os.path.join(zapiSession.DATA_FOLDER, 'channels.cache')
+		if zapiSession.CACHE_ENABLED:
+			self.CHANNELS_CACHE_FILE = os.path.join(zapiSession.CACHE_FOLDER, 'channels.cache')
 		self.ZapiSession = zapiSession
 
 # -- Channels -- 
@@ -25,16 +26,25 @@ class ZapiHelper:
 		with open(self.CHANNELS_CACHE_FILE, 'w') as f:
 			f.write(base64.b64encode(json.dumps(channelsData)))
 
-	def retrieve_channels(self):
+	def read_channelsCache(self):
 		if os.path.isfile(self.CHANNELS_CACHE_FILE):
 			with open(self.CHANNELS_CACHE_FILE, 'r') as f:
 				channelsData = json.loads(base64.b64decode(f.readline()))
 			if channelsData is not None and channelsData['expires'] > time.time():
 				return channelsData
+		return None
+
+	def retrieve_channels(self):
+		if self.ZapiSession.CACHE_ENABLED:
+			channelsData = self.read_channelsCache()
+			if channelsData is not None:
+				return channelsData
+
 		api = '/zapi/v2/cached/channels/' + self.ZapiSession.AccountData['account']['power_guide_hash'] + '?details=False'
 		channelsData = self.ZapiSession.exec_zapiCall(api, None)
 		if channelsData is not None:
-			self.persist_channels(channelsData)
+			if self.ZapiSession.CACHE_ENABLED:
+				self.persist_channels(channelsData)
 			return channelsData
 		return None
 

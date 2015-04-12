@@ -1,11 +1,10 @@
 # coding=utf-8
 
 ##################################
-# ZattooBox v0.5.0
-# (c) 2014 Pascal Nançoz
-# nancpasc@gmail.com
-#
+# ZattooBox v0.5.5
 # XBMC Addon for Zattoo recordings
+# (c) 2014-2015 Pascal Nançoz
+# nancpasc@gmail.com
 ##################################
 import sys, urllib, urlparse, os
 import xbmcgui, xbmcplugin, xbmcaddon
@@ -23,6 +22,7 @@ def build_directoryContent(content, addon_handle):
 	xbmcplugin.setContent(addon_handle, 'movies')
 	for record in content:
 		li = xbmcgui.ListItem(record['title'], iconImage=record['image'])
+		li.setProperty('IsPlayable', 'true')
 		xbmcplugin.addDirectoryItem(handle=addon_handle, url=record['url'], listitem=li, isFolder=record['isFolder'])
 	xbmcplugin.endOfDirectory(addon_handle)
 
@@ -40,7 +40,7 @@ def build_recordingsList(addon_uri, addon_handle):
 		for record in resultData['recordings']:
 			content.append({
 				'title': record['title'], 'image': record['image_url'], 'isFolder': False,
-				'url': addon_uri + '?' + urllib.urlencode({'mode': 'watch_r', 'id': record['id']})})
+				'url': addon_uri + '?' + urllib.urlencode({'mode': 'watch_r', 'id': record['id'], 'title': record['title'].encode('utf-8')})})
 		build_directoryContent(content, addon_handle)
 
 def build_channelsList(addon_uri, addon_handle, category):
@@ -51,22 +51,28 @@ def build_channelsList(addon_uri, addon_handle, category):
 		for record in channels:
 			content.append({
 				'title': record['title'], 'image': record['image_url'], 'isFolder': False,
-				'url': addon_uri + '?' + urllib.urlencode({'mode': 'watch_c', 'id': record['id']})})
+				'url': addon_uri + '?' + urllib.urlencode({'mode': 'watch_c', 'id': record['id'], 'title': record['title'].encode('utf-8')})})
 		build_directoryContent(content, addon_handle)
 
-def watch_recording(recording_id):
+def PlayStream(url, title, addon_handle):
+	li = xbmcgui.ListItem(title)
+	li.setInfo(type="Video", infoLabels={ "Title": title} )
+	li.setPath(url)
+	xbmcplugin.setResolvedUrl(addon_handle, True, li)		
+
+def watch_recording(recording_id, title, addon_handle):
 	params = {'recording_id': recording_id, 'stream_type': 'hls'}
 	resultData = _zapiSession_.exec_zapiCall('/zapi/watch', params)
 	if resultData is not None:
 		url = resultData['stream']['url']
-		xbmc.Player().play(url)
+		PlayStream(url, title, addon_handle)
 
-def watch_channel(channel_id):
+def watch_channel(channel_id, title, addon_handle):
 	params = {'cid': channel_id, 'stream_type': 'hls'}
 	resultData = _zapiSession_.exec_zapiCall('/zapi/watch', params)
 	if resultData is not None:
 		url = resultData['stream']['watch_urls'][0]['url']
-		xbmc.Player().play(url)
+		PlayStream(url, title, addon_handle)
 
 #XBMC plugin entry point
 addon_uri = sys.argv[0]
@@ -92,10 +98,12 @@ if _zapiSession_.init_session(__addon__.getSetting('username'), __addon__.getSet
 
 	elif mode[0] == 'watch_r':
 		recording_id = args.get('id')[0]
-		watch_recording(recording_id)
+		title = args.get('title')[0]
+		watch_recording(recording_id, title, addon_handle)
 
 	elif mode[0] == 'watch_c':
 		cid = args.get('id')[0]
-		watch_channel(cid)
+		title = args.get('title')[0]		
+		watch_channel(cid, title, addon_handle)
 else:
 	xbmcgui.Dialog().ok(__addonname__, __addon__.getLocalizedString(30902))
