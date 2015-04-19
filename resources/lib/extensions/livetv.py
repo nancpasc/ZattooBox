@@ -1,23 +1,75 @@
 # coding=utf-8
 
 ##################################
-# Zappylib V0.5.5
-# ZapiHelper
+# ZattooBox extension
+# LiveTV
 # (c) 2014-2015 Pascal Nançoz
 ##################################
+
+from resources.lib.core.zbextension import ZBExtension
+from resources.lib.core.zbfolderitem import ZBFolderItem
+from resources.lib.core.zbplayableitem import ZBPlayableItem
 import os, time, json, base64
 
-class ZapiHelper:
-	IMAGES_ROOT = 'http://logos.zattic.com'
+class LiveTV(ZBExtension):
 	CHANNELS_CACHE_FILE = None
-	ZapiSession = None
+	IMAGES_ROOT = 'http://logos.zattic.com'
 
-	def __init__(self, zapiSession):
-		if zapiSession.CACHE_ENABLED:
-			self.CHANNELS_CACHE_FILE = os.path.join(zapiSession.CACHE_FOLDER, 'channels.cache')
-		self.ZapiSession = zapiSession
+	def init(self):
+		if self.ZapiSession.CACHE_ENABLED:
+			self.CHANNELS_CACHE_FILE = os.path.join(self.ZapiSession.CACHE_FOLDER, 'channels.cache')
 
-# -- Channels -- 
+	def get_items(self):
+		content = [
+			ZBFolderItem(
+				host=self,
+				args={'mode': 'root', 'cat': 'fav'},
+				title=self.ZBProxy.get_string(30100),
+				image=os.path.join(self.ExtensionsPath, 'livetv/tv.png')
+			),
+			ZBFolderItem(
+				host=self,
+				args={'mode': 'root', 'cat': 'all'},
+				title=self.ZBProxy.get_string(30101),
+				image=os.path.join(self.ExtensionsPath, 'livetv/tv.png')
+			)
+		]
+		return content
+
+	def activate_item(self, args):
+		if args['mode'] == 'root':
+			self.build_channelsList(args)
+		elif args['mode'] == 'watch':
+			self.watch(args)
+
+	#---
+		
+	def build_channelsList(self, args):
+		channels = self.get_channels(args['cat'])
+		if channels is None:
+			return
+
+		items = []
+		for record in channels:
+			items.append(ZBPlayableItem(
+				host=self,
+				args={'mode': 'watch', 'id': record['id']},
+				title=record['title'],
+				image=record['image_url'],
+				title2=''
+				)
+			)
+		self.ZBProxy.add_directoryItems(items)
+
+	def watch(self, args):
+		params = {'cid': args['id'], 'stream_type': 'hls'}
+		resultData = self.ZapiSession.exec_zapiCall('/zapi/watch', params)
+		if resultData is not None:
+			url = resultData['stream']['watch_urls'][0]['url']
+			self.ZBProxy.play_stream(url)
+
+	#---
+
 	def fetch_imageUrl(self, relPath):
 		return self.IMAGES_ROOT + relPath.replace('/images/channels', '')
 
@@ -40,7 +92,7 @@ class ZapiHelper:
 			if channelsData is not None:
 				return channelsData
 
-		api = '/zapi/v2/cached/channels/' + self.ZapiSession.AccountData['account']['power_guide_hash'] + '?details=False'
+		api = '/zapi/v2/cached/channels/%s?details=False' % self.ZapiSession.AccountData['account']['power_guide_hash']
 		channelsData = self.ZapiSession.exec_zapiCall(api, None)
 		if channelsData is not None:
 			if self.ZapiSession.CACHE_ENABLED:
@@ -71,11 +123,11 @@ class ZapiHelper:
 		return allChannels
 
 	def get_channels(self, category):
-		allChannels = self.get_allChannels(True if category == 'favorites' else False)
+		allChannels = self.get_allChannels(True if category == 'fav' else False)
 		if allChannels is not None:
-			if category == 'favorites':
+			if category == 'fav':
 				return [channel for channel in allChannels if channel['favorite'] == 1]
-			elif category == 'recommended':
+			elif category == 'rcm':
 				return [channel for channel in allChannels if channel['recommend'] == 1]
 			return allChannels
 		return None
