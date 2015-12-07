@@ -26,6 +26,10 @@ msgctxt "#30002"
 msgid "Password"
 msgstr ""
 
+msgctxt "#30003"
+msgid "Show 'now playing' program next to channel name"
+msgstr ""
+
 msgctxt "#30100"
 msgid "LiveTV - favorites"
 msgstr ""
