@@ -21,6 +21,7 @@ class ZapiSession:
 	Username = None
 	Password = None
 	AccountData = None
+	ShowNowPlayingProgram = False
 
 	def __init__(self, cacheFolder):
 		if cacheFolder is not None:
@@ -31,9 +32,10 @@ class ZapiSession:
 		self.HttpHandler = urllib2.build_opener()
 		self.HttpHandler.addheaders = [('Content-type', 'application/x-www-form-urlencoded'),('Accept', 'application/json')]
 
-	def init_session(self, username, password):
+	def init_session(self, username, password, showNowPlayingProgram):
 		self.Username = username
 		self.Password = password
+		self.ShowNowPlayingProgram = showNowPlayingProgram
 		return (self.CACHE_ENABLED and self.restore_session()) or self.renew_session()
 
 	def restore_session(self):
