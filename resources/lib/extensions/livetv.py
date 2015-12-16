@@ -17,8 +17,11 @@ class LiveTV(ZBExtension):
 
 	def init(self):
 		if self.ZapiSession.CACHE_ENABLED:
-			self.CHANNELS_CACHE_FILE = os.path.join(self.ZapiSession.CACHE_FOLDER, 'channels.cache')
-
+			if self.ZapiSession.ShowNowPlayingProgram:
+				self.CHANNELS_CACHE_FILE = os.path.join(self.ZapiSession.CACHE_FOLDER, 'channels_proginfo.cache')
+			else:
+				self.CHANNELS_CACHE_FILE = os.path.join(self.ZapiSession.CACHE_FOLDER, 'channels.cache')
+				
 	def get_items(self):
 		content = [
 			ZBFolderItem(
@@ -74,10 +77,17 @@ class LiveTV(ZBExtension):
 		return self.IMAGES_ROOT + relPath.replace('/images/channels', '')
 
 	def persist_channels(self, channelsData):
-		channelsData['expires'] = time.time() + 86400
+		if self.ZapiSession.ShowNowPlayingProgram:
+			# If showing the "now playing" program next to the channel name, one needs to expire
+			# the channel cache more often -- in this case 4 minutes.
+			channelsData['expires'] = time.time() + 240
+		else:
+			# Otherwise, if showing only the channel names, one can set the cache expiry date to
+			# later time -- in this case 1 day.
+			channelsData['expires'] = time.time() + 86400
 		with open(self.CHANNELS_CACHE_FILE, 'w') as f:
 			f.write(base64.b64encode(json.dumps(channelsData)))
-
+			
 	def read_channelsCache(self):
 		if os.path.isfile(self.CHANNELS_CACHE_FILE):
 			with open(self.CHANNELS_CACHE_FILE, 'r') as f:
@@ -92,7 +102,8 @@ class LiveTV(ZBExtension):
 			if channelsData is not None:
 				return channelsData
 
-		api = '/zapi/v2/cached/channels/%s?details=False' % self.ZapiSession.AccountData['account']['power_guide_hash']
+		getChannelExtraDetails = 'True' if self.ZapiSession.ShowNowPlayingProgram else 'False'
+		api = '/zapi/v2/cached/channels/%s?details=%s' % (self.ZapiSession.AccountData['account']['power_guide_hash'], getChannelExtraDetails)
 		channelsData = self.ZapiSession.exec_zapiCall(api, None)
 		if channelsData is not None:
 			if self.ZapiSession.CACHE_ENABLED:
@@ -114,9 +125,15 @@ class LiveTV(ZBExtension):
 		allChannels = []
 		for group in channelsData['channel_groups']:
 			for channel in group['channels']:
+				channelLabel = channel['title']
+				if self.ZapiSession.ShowNowPlayingProgram:
+					if channel.has_key('now') and channel['now'] is not None:
+						channelLabel += ' - ' + channel['now']['t']
+					if channel.has_key('next') and channel['next'] is not None:
+						channelLabel += ' (next: ' + channel['next']['t'] + ')'
 				allChannels.append({
 					'id': channel['id'],
-					'title': channel['title'],
+					'title': channelLabel,
 					'image_url': self.fetch_imageUrl(channel['qualities'][0]['logo_black_84']),
 					'recommend': 1 if channel['recommendations'] == True else 0,
 					'favorite': 1 if flag_favorites and channel['id'] in favoritesData['favorites'] else 0})
