@@ -1,9 +1,9 @@
 # coding=utf-8
 
 ##################################
-# ZattooBox v1.0.0
+# ZattooBox v1.0.3
 # Kodi Addon for Zattoo
-# (c) 2014-2015 Pascal Nançoz
+# (c) 2014-2018 Pascal Nançoz
 # nancpasc@gmail.com
 ##################################
 
@@ -28,8 +28,7 @@ args = dict(urlparse.parse_qsl(sys.argv[2][1:]))
 zbAddonProxy = ZBAddonProxy(kodi_addon, sys.argv[0], int(sys.argv[1]))
 zapiSession = ZapiSession(zbAddonProxy.StoragePath)
 
-showNowPlayingProgram = kodi_addon.getSetting('showNowPlayingProgram') == 'true'
-if zapiSession.init_session(kodi_addon.getSetting('username'), kodi_addon.getSetting('password'), showNowPlayingProgram):
+if zapiSession.init_session(kodi_addon.getSetting('username'), kodi_addon.getSetting('password')):
 
 	if not 'ext' in args:
 		#collect content from all extensions
