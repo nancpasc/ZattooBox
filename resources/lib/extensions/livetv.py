@@ -1,5 +1,3 @@
-# coding=utf-8
-
 ##################################
 # ZattooBox extension
 # LiveTV
@@ -75,12 +73,12 @@ class LiveTV(ZBExtension):
 
 	def persist_channels(self, channelsData):
 		channelsData['expires'] = time.time() + 86400
-		with open(self.CHANNELS_CACHE_FILE, 'w') as f:
+		with open(self.CHANNELS_CACHE_FILE, 'wb') as f:
 			f.write(base64.b64encode(json.dumps(channelsData)))
 
 	def read_channelsCache(self):
 		if os.path.isfile(self.CHANNELS_CACHE_FILE):
-			with open(self.CHANNELS_CACHE_FILE, 'r') as f:
+			with open(self.CHANNELS_CACHE_FILE, 'rb') as f:
 				channelsData = json.loads(base64.b64decode(f.readline()))
 			if channelsData is not None and channelsData['expires'] > time.time():
 				return channelsData

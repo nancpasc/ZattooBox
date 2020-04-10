@@ -1,5 +1,3 @@
-# coding=utf-8
-
 ##################################
 # ZattooBox extensions
 # Base Class
@@ -8,7 +6,7 @@
 
 import os
 
-class ZBExtension(object):
+class ZBExtension:
 	ZapiSession = None
 	ZBProxy = None
 	ExtensionsPath = None
