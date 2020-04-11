@@ -1,5 +1,3 @@
-# coding=utf-8
-
 ##################################
 # ZattooBox Folder item
 # 
@@ -11,8 +9,8 @@ import xbmcgui
 
 class ZBFolderItem(ZBDirectoryItem):
 
-	def __init__(self, host, args, title, image):
-		super(ZBFolderItem, self).__init__(host, args, title, image)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.IsFolder = True
 
 	def get_listItem(self):
