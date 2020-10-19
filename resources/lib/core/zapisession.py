@@ -1,18 +1,18 @@
+# coding=utf-8
+
 ##################################
-# Zappylib V1.0.4
+# Zappylib V1.0.7
 # ZapiSession
-# (c) 2014-2018 Pascal Nançoz
+# (c) 2014-2020 Pascal Nançoz
 ##################################
 
-import os, re, base64
+import os, re, base64, uuid
+import urllib, urllib2
 import json
-from urllib import request
-from urllib.parse import urlencode
 
 class ZapiSession:
 	ZAPI_URL = 'https://zattoo.com'
-	ZAPI_UUID = 'd7512e98-38a0-4f01-b820-5a5cf98141fe'
-	ZAPI_APP_VERSION = '2.12.3'
+	ZAPI_UUID = None
 	CACHE_ENABLED = False
 	CACHE_FOLDER = None
 	COOKIE_FILE = None
@@ -28,11 +28,9 @@ class ZapiSession:
 			self.CACHE_FOLDER = cacheFolder
 			self.COOKIE_FILE = os.path.join(cacheFolder, 'session.cache')
 			self.ACCOUNT_FILE = os.path.join(cacheFolder, 'account.cache')
-		self.HttpHandler = request.build_opener()
-		self.HttpHandler.addheaders = [
-				('Content-type', 'application/x-www-form-urlencoded'),
-				('Accept', 'application/json')
-		]
+		self.ZAPI_UUID = uuid.uuid4()
+		self.HttpHandler = urllib2.build_opener()
+		self.HttpHandler.addheaders = [('Content-type', 'application/x-www-form-urlencoded'),('Accept', 'application/json')]
 
 	def init_session(self, username, password):
 		self.Username = username
@@ -42,11 +40,11 @@ class ZapiSession:
 	def restore_session(self):
 		try:
 			if os.path.isfile(self.COOKIE_FILE) and os.path.isfile(self.ACCOUNT_FILE):
-				with open(self.ACCOUNT_FILE, 'rb') as f:
+				with open(self.ACCOUNT_FILE, 'r') as f:
 					accountData = json.loads(base64.b64decode(f.readline()))
 				if accountData['session'] is not None and accountData['success'] == True:
 					self.AccountData = accountData
-					with open(self.COOKIE_FILE, 'rb') as f:
+					with open(self.COOKIE_FILE, 'r') as f:
 						self.set_cookie(base64.b64decode(f.readline()))
 					return True
 		except Exception:
@@ -59,11 +57,11 @@ class ZapiSession:
 		return None
 
 	def persist_accountData(self, accountData):
-		with open(self.ACCOUNT_FILE, 'wb') as f:
+		with open(self.ACCOUNT_FILE, 'w') as f:
 			f.write(base64.b64encode(json.dumps(accountData)))
 
 	def persist_sessionId(self, sessionId):
-		with open(self.COOKIE_FILE, 'wb') as f:
+		with open(self.COOKIE_FILE, 'w') as f:
 			f.write(base64.b64encode(sessionId))
 
 	def set_cookie(self, sessionId):
@@ -71,7 +69,7 @@ class ZapiSession:
 
 	def request_url(self, url, params):
 		try:
-			response = self.HttpHandler.open(url, urlencode(params) if params is not None else None)
+			response = self.HttpHandler.open(url, urllib.urlencode(params) if params is not None else None)
 			if response is not None:
 				sessionId = self.extract_sessionId(response.info().getheader('Set-Cookie'))
 				if sessionId is not None:
@@ -99,17 +97,21 @@ class ZapiSession:
 		return None
 
 	def fetch_appToken(self):
-		handle = request.urlopen(self.ZAPI_URL + '/')
-		html = handle.read()
-		return re.search("window\.appToken\s*=\s*'(.*)'", html).group(1)
+		try:
+			handle = urllib2.urlopen(self.ZAPI_URL + '/token-46a1dfccbd4c3bdaf6182fea8f8aea3f.json')
+			resultData = json.loads(handle.read())
+			return resultData['session_token']
+		except Exception:
+			pass
+		return None
+		
 
 	def announce(self):
-		api = '/zapi/v2/session/hello'
+		api = '/zapi/session/hello'
 		params = {"client_app_token" : self.fetch_appToken(),
 				  "uuid"    : self.ZAPI_UUID,
 				  "lang"    : "en",
-				  "app_version" : self.ZAPI_APP_VERSION,
-				  "format"	: "json"}
+				  "format"  : "json"}
 		resultData = self.exec_zapiCall(api, params, 'session')
 		return resultData is not None
 
@@ -122,7 +124,7 @@ class ZapiSession:
 			if self.CACHE_ENABLED:
 				self.persist_accountData(accountData)
 			return True
-		return False		
+		return False
 
 	def renew_session(self):
 		return self.announce() and self.login()

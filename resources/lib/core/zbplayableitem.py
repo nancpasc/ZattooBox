@@ -1,7 +1,9 @@
+# coding=utf-8
+
 ##################################
 # ZattooBox Playable item
 # 
-# (c) 2014-2018 Pascal Nançoz
+# (c) 2014-2020 Pascal Nançoz
 ##################################
 
 from resources.lib.core.zbdirectoryitem import ZBDirectoryItem
@@ -12,7 +14,7 @@ class ZBPlayableItem(ZBDirectoryItem):
 
 	def __init__(self, host, args, title, image, title2):
 		extendedTitle = title if title2 is None or title2 == '' else '%s (%s)' % (title, title2)
-		super().__init__(host, args, extendedTitle, image)
+		super(ZBPlayableItem, self).__init__(host, args, extendedTitle, image)
 		self.Title2 = title2
 
 	def get_listItem(self):

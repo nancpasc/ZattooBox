@@ -1,12 +1,14 @@
+# coding=utf-8
+
 ##################################
 # ZattooBox Addon proxy
 #
-# (c) 2014-2015 Pascal Nançoz
+# (c) 2014-2020 Pascal Nançoz
 ##################################
 
 import xbmc, xbmcplugin, xbmcgui
 
-class ZBAddonProxy:
+class ZBAddonProxy(object):
 	Addon = None
 	Handle = None
 	URLBase = None
@@ -17,8 +19,8 @@ class ZBAddonProxy:
 		self.Addon = addon
 		self.URLBase = urlBase
 		self.Handle = handle
-		self.SourcePath = xbmc.translatePath(addon.getAddonInfo('path'))
-		self.StoragePath = xbmc.translatePath(addon.getAddonInfo('profile'))
+		self.SourcePath = xbmc.translatePath(addon.getAddonInfo('path')).decode('utf-8')		
+		self.StoragePath = xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8')
 
 	def get_string(self, code):
 		return self.Addon.getLocalizedString(code)

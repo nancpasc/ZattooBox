@@ -1,13 +1,14 @@
+# coding=utf-8
+
 ##################################
-# ZattooBox v1.0.5
+# ZattooBox v1.0.6
 # Kodi Addon for Zattoo
-# (c) 2014-2019 Pascal Nançoz
+# (c) 2014-2020 Pascal Nançoz
 # nancpasc@gmail.com
 ##################################
 
-import sys
+import sys, urlparse
 import xbmcgui, xbmcaddon
-from urllib.parse import parse_qsl
 
 #import ZBcore
 from resources.lib.core.zapisession import ZapiSession
@@ -22,7 +23,7 @@ ext_dict['Recordings'] = Recordings
 
 #Main
 kodi_addon = xbmcaddon.Addon()
-args = dict(parse_qsl(sys.argv[2][1:]))
+args = dict(urlparse.parse_qsl(sys.argv[2][1:]))
 
 zbAddonProxy = ZBAddonProxy(kodi_addon, sys.argv[0], int(sys.argv[1]))
 zapiSession = ZapiSession(zbAddonProxy.StoragePath)

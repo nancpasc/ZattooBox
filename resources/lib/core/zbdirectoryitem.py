@@ -1,13 +1,14 @@
+# coding=utf-8
+
 ##################################
 # ZattooBox Directory item
 # Base class
-# (c) 2014-2015 Pascal Nançoz
+# (c) 2014-2020 Pascal Nançoz
 ##################################
 
-from urllib.parse import urlencode
-import xbmcgui
+import xbmcgui, urllib
 
-class ZBDirectoryItem:
+class ZBDirectoryItem(object):
 	Host = None
 	Args = None	
 	Title = None
@@ -24,5 +25,5 @@ class ZBDirectoryItem:
 		raise NotImplementedError('Not implemented')
 
 	def get_url(self):
-		return 'ext=%s&%s' % (type(self.Host).__name__, urlencode(self.Args))
+		return 'ext=%s&%s' % (type(self.Host).__name__, urllib.urlencode(self.Args))
 
